@@ -659,8 +659,8 @@ export default function App() {
                 <Menu className="w-5 h-5" />
               </button>
             ) : (
-              <button onClick={() => setActiveView('home')} className="p-2 hover:bg-white/10 rounded-xl transition-all active:scale-90">
-                <ChevronLeft className="w-5 h-5 text-amber-500" />
+              <button onClick={() => setIsSidebarOpen(true)} className="p-2 hover:bg-white/10 rounded-xl transition-all active:scale-90 lg:hidden">
+                <Menu className="w-5 h-5" />
               </button>
             )}
             <div className="flex flex-col">

@@ -12,6 +12,9 @@ dotenv.config();
 console.log("Environment Variables Loaded:");
 console.log("ENABLE_AI:", process.env.ENABLE_AI);
 console.log("ACTIVE_AI_PROVIDER:", process.env.ACTIVE_AI_PROVIDER);
+console.log("DB_HOST:", process.env.DB_HOST);
+console.log("DB_DATABASE:", process.env.DB_DATABASE);
+console.log("DB_USERNAME:", process.env.DB_USERNAME);
 
 // --- LICENSE CONFIGURATION ---
 // This is controlled from the backend and cannot be changed from the frontend.
@@ -26,7 +29,7 @@ const dbConfig: sql.config = {
   password: process.env.DB_PASSWORD || "Oryx123!",
   server: process.env.DB_HOST || "149.34.201.35",
   port: parseInt(process.env.DB_PORT || "1433"),
-  database: "AntigravityPOS", // Explicitly force AntigravityPOS
+  database: process.env.DB_DATABASE || "KEYIFCAFE", // Use DB_DATABASE from env or default to AntigravityPOS
   options: {
     encrypt: false,
     trustServerCertificate: true,
@@ -44,22 +47,22 @@ async function startServer() {
   let pool: sql.ConnectionPool | null = null;
   const connectDB = async () => {
     try {
-      console.log(`Attempting to connect to database: ${dbConfig.database} at ${dbConfig.server}`);
+      console.log(`Connecting with config:`, { ...dbConfig, password: '***' });
       pool = await sql.connect(dbConfig);
       console.log("Connected to MSSQL Server successfully");
     } catch (err) {
       console.error("Database connection failed critical error:", err);
     }
   };
-  
+
   await connectDB();
 
 
 
   // Health Check
   app.get("/api/health", (req, res) => {
-    res.json({ 
-      status: "ok", 
+    res.json({
+      status: "ok",
       dbConnected: !!pool,
       time: new Date().toISOString(),
       env: process.env.NODE_ENV
@@ -95,8 +98,8 @@ async function startServer() {
           config: { systemInstruction }
         });
         return res.json({ text: response.text });
-      } 
-      
+      }
+
       if (provider === 'openai') {
         const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
         const completion = await openai.chat.completions.create({
@@ -122,7 +125,7 @@ async function startServer() {
       }
 
       if (provider === 'kimi') {
-        const kimi = new OpenAI({ 
+        const kimi = new OpenAI({
           apiKey: process.env.KIMI_API_KEY,
           baseURL: "https://api.moonshot.cn/v1"
         });
@@ -605,7 +608,7 @@ async function startServer() {
         GROUP BY ISNULL(paymentMethod, 'Nakit')
       `);
       res.json(result.recordset);
-    } catch (err: any) { 
+    } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
   });
@@ -629,7 +632,7 @@ async function startServer() {
         ORDER BY loss DESC
       `);
       res.json(result.recordset);
-    } catch (err: any) { 
+    } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
   });
